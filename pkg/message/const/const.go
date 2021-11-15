@@ -1,5 +1,5 @@
 package constant
 
 const (
-	ServiceName = "service-sample.npool.top"
+	ServiceName = "sphinx-agent.npool.top"
 )

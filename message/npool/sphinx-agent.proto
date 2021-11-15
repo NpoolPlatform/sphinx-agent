@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package sphinx.agent.v1;
+
+option go_package = "github.com/NpoolPlatform/sphinx-agent/message/npool";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+// 钱包代理服务
+service SphinxAgent {
+	/* 
+	从RabbitMQ获取消息通知
+	从MySQL拉取交易，以及交易的详细信息
+	根据不同交易状态进行不同操作
+	每步操作完成后同步更新数据库状态
+	审核通过交易，调用离线签名
+	离线签名后，交由钱包节点进行广播
+	广播成功后获取到CID，更新数据库标记为完成
+	*/
+	// 交易状态查询
+	rpc GetTxStatus (GetTxStatusRequest) returns (GetTxStatusResponse) {}
+	// 余额查询
+	rpc GetBalance (GetBalanceRequest) returns (AccountBalance) {}
+	// Method Version
+	rpc Version (google.protobuf.Empty) returns (VersionResponse){
+		option (google.api.http) = {
+			post: "/version"
+			body: "*"
+		};
+	}
+}
+
+// GetTxStatus 参数
+message GetTxStatusRequest {
+	string transaction_id_chain = 1;
+}
+
+// GetTxStatus 返回
+message GetTxStatusResponse {
+	double amount_float64 = 1; // 不入库的参考金额
+	uint64 amount_uint64 = 2; // 内部交互标准金额格式
+	string address_from = 3; // 发送方
+	string address_to = 4; // 接收方
+	string transaction_id_chain = 5; // 公链交易ID
+	int64 createtime_utc = 6; // 创建时间
+	int64 updatetime_utc = 7; // 上次更新时间
+	bool is_success = 8; // 便于调用方判断
+	bool is_failed = 9; // 不success不fail就是pending了
+	int32 num_blocks_confirmed = 10; // 已确认区块数
+}
+
+// GetBalance 参数
+message GetBalanceRequest {
+		int32 coin_id = 1;
+		string address = 2; // 查询的钱包地址
+		int64 timestamp_utc = 3; // 长整型时间戳
+}
+// GetBalance 返回
+message AccountBalance {
+		int32 coin_id = 1;
+		string address = 2; // 查询的钱包地址
+		int64 timestamp_utc = 3; // 长整型时间戳
+		double amount_float64 = 4; // 不入库的参考金额
+		uint64 amount_uint64 = 5; // 内部交互标准金额格式
+}
+
+// request body and response
+message VersionResponse {
+		string Info = 100;
+}

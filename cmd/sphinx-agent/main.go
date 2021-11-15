@@ -9,7 +9,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 )
 
-const serviceName = "Service Sample"
+const serviceName = "Sphinx Agent"
 
 func main() {
 	commands := cli.Commands{
